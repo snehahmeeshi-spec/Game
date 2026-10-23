@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="NEBULA STRIKE: Galactic Vanguard - An action-packed 2D arcade sci-fi space shooter built with HTML5, CSS3, and JavaScript. Battle enemy armadas, collect power-ups, and defeat colossal bosses!">
+  <meta name="keywords" content="space shooter, arcade game, html5 game, canvas game, retro arcade, javascript game">
+  <title>NEBULA STRIKE: Galactic Vanguard | 2D Sci-Fi Space Shooter</title>
+  
+  <!-- Google Fonts for High-Tech Sci-Fi Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Audio Warning / Interaction Notice -->
+  <div id="game-wrapper" class="game-wrapper">
+    <!-- Main Game Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- CRT Scanline / Vignette Overlay Effect for Arcade Feel -->
+    <div class="crt-overlay" aria-hidden="true"></div>
+
+    <!-- Heads-Up Display (In-Game HUD) -->
+    <header id="game-hud" class="hud-container hidden">
+      <!-- Left Column: Player Status -->
+      <div class="hud-group hud-status">
+        <div class="stat-bar-container">
+          <div class="stat-label">
+            <span class="icon">❤️</span> HULL
+            <span id="hull-text" class="stat-val">100%</span>
+          </div>
+          <div class="meter-track">
+            <div id="hull-bar" class="meter-fill hull-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <div class="stat-bar-container">
+          <div class="stat-label">
+            <span class="icon">🛡️</span> SHIELD
+            <span id="shield-text" class="stat-val">100%</span>
+          </div>
+          <div class="meter-track">
+            <div id="shield-bar" class="meter-fill shield-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center Column: Wave & Boss HUD -->
+      <div class="hud-group hud-center">
+        <div class="wave-badge">
+          <span class="wave-subtitle">SYSTEM SECTOR</span>
+          <span id="hud-wave" class="wave-title">WAVE 1</span>
+        </div>
+        
+        <!-- Boss Health Bar (Revealed dynamically during Boss fights) -->
+        <div id="boss-hud" class="boss-hud hidden">
+          <div class="boss-title-row">
+            <span class="boss-tag">⚠️ DANGER: CAPITAL CLASS</span>
+            <span id="boss-name" class="boss-name">THE DREADNOUGHT</span>
+          </div>
+          <div class="boss-bar-track">
+            <div id="boss-bar-fill" class="boss-bar-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Score, Combo & Super Weapons -->
+      <div class="hud-group hud-stats">
+        <div class="score-display">
+          <span class="score-label">SCORE</span>
+          <span id="hud-score" class="score-value">000000</span>
+        </div>
+        
+        <div class="hud-secondary-row">
+          <div id="combo-badge" class="combo-badge hidden">
+            <span id="combo-multiplier">2X</span> COMBO
+          </div>
+          <div class="bomb-counter">
+            <span class="bomb-label">EMP [SPACE / B]</span>
+            <div id="bomb-icons" class="bomb-pills">
+              <span class="bomb-dot active">💣</span>
+              <span class="bomb-dot active">💣</span>
+              <span class="bomb-dot">💣</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Floating Banner for Wave Transitions & Level Notifications -->
+    <div id="wave-banner" class="wave-banner hidden" aria-live="polite">
+      <h2 id="wave-banner-title">WAVE 1</h2>
+      <p id="wave-banner-desc">INCOMING HOSTILE SQUADRONS</p>
+    </div>
+
+    <!-- UI Overlay: Start / Title Screen -->
+    <div id="start-screen" class="ui-screen">
+      <div class="panel-glow-box title-card">
+        <div class="brand-badge">ARCADE PROTOCOL 2026</div>
+        <h1 class="game-title">NEBULA<span class="title-accent">STRIKE</span></h1>
+        <p class="game-tagline">GALACTIC VANGUARD: VOID PURGE</p>
+
+        <!-- Ship Hologram Preview & Stats -->
+        <div class="ship-preview-box">
+          <div class="preview-glow"></div>
+          <canvas id="ship-preview-canvas" width="140" height="140"></canvas>
+          <div class="ship-specs">
+            <div class="spec-row">
+              <span>CRAFT</span> <strong class="cyan-txt">X-99 VALKYRIE</strong>
+            </div>
+            <div class="spec-row">
+              <span>PRIMARY</span> <strong>PLASMA TWIN-BLASTER</strong>
+            </div>
+            <div class="spec-row">
+              <span>SPECIAL</span> <strong class="magenta-txt">EMP SHOCKWAVE</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controls Guide -->
+        <div class="controls-guide">
+          <div class="control-item">
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>ARROWS</kbd> / <kbd>TOUCH</kbd>
+            <span>Movement</span>
+          </div>
+          <div class="control-item">
+            <kbd>SPACE</kbd> or <kbd>AUTO</kbd> / <kbd>CLICK</kbd>
+            <span>Primary Cannon</span>
+          </div>
+          <div class="control-item">
+            <kbd>B</kbd> or <kbd>SHIFT</kbd>
+            <span>EMP Screen Clear</span>
+          </div>
+          <div class="control-item">
+            <kbd>P</kbd> or <kbd>ESC</kbd>
+            <span>Pause / Settings</span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button id="btn-start" class="btn btn-primary" type="button">
+            <span class="btn-shine"></span>
+            <span class="btn-text">ENGAGE COMBAT</span>
+          </button>
+          
+          <div class="quick-options">
+            <button id="btn-sound-toggle" class="btn btn-outline" type="button" aria-label="Toggle Sound">
+              🔊 AUDIO: <span id="sound-state-label">ON</span>
+            </button>
+            <button id="btn-difficulty-toggle" class="btn btn-outline" type="button">
+              ⚔️ MODE: <span id="difficulty-state-label">NORMAL</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- High Score Footer -->
+        <div class="high-score-record">
+          <span>HIGH SCORE: </span>
+          <strong id="start-high-score" class="gold-txt">0</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- UI Overlay: Pause Menu -->
+    <div id="pause-screen" class="ui-screen hidden">
+      <div class="panel-glow-box modal-box">
+        <h2 class="modal-title">MISSION PAUSED</h2>
+        <p class="modal-sub">VESSEL SYSTEMS STANDING BY</p>
+
+        <div class="modal-actions">
+          <button id="btn-resume" class="btn btn-primary" type="button">
+            <span class="btn-text">RESUME MISSION</span>
+          </button>
+          <button id="btn-pause-sound" class="btn btn-outline" type="button">
+            🔊 AUDIO TOGGLE
+          </button>
+          <button id="btn-restart-from-pause" class="btn btn-danger" type="button">
+            🔄 RESTART SECTOR
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UI Overlay: Game Over Screen -->
+    <div id="gameover-screen" class="ui-screen hidden">
+      <div class="panel-glow-box modal-box gameover-box">
+        <div class="gameover-badge">MISSION FAILED</div>
+        <h2 class="gameover-title">VESSEL DESTROYED</h2>
+        
+        <div class="stats-summary-grid">
+          <div class="stat-card">
+            <span class="card-label">FINAL SCORE</span>
+            <span id="summary-score" class="card-val highlight-score">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="card-label">SECTOR REACHED</span>
+            <span id="summary-wave" class="card-val">WAVE 1</span>
+          </div>
+          <div class="stat-card">
+            <span class="card-label">HOSTILES DESTROYED</span>
+            <span id="summary-kills" class="card-val">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="card-label">MAX COMBO</span>
+            <span id="summary-combo" class="card-val">1X</span>
+          </div>
+        </div>
+
+        <div id="new-high-score-alert" class="new-record-alert hidden">
+          🌟 NEW GALACTIC HIGH SCORE RECORD! 🌟
+        </div>
+
+        <div class="modal-actions">
+          <button id="btn-restart" class="btn btn-primary" type="button">
+            <span class="btn-shine"></span>
+            <span class="btn-text">DEPLOY REPLACEMENT VESSEL</span>
+          </button>
+          <button id="btn-main-menu" class="btn btn-outline" type="button">
+            RETURN TO HANGAR
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onscreen Mobile Touch Controls (shown automatically on mobile/touch screens) -->
+    <div id="touch-controls" class="touch-controls-container hidden">
+      <div id="touch-joystick-zone" class="touch-zone joystick-zone">
+        <div id="touch-stick-base" class="stick-base">
+          <div id="touch-stick-thumb" class="stick-thumb"></div>
+        </div>
+      </div>
+      <div class="touch-zone action-zone">
+        <button id="btn-touch-bomb" class="touch-action-btn bomb-btn" type="button" aria-label="EMP Bomb">
+          💣
+        </button>
+        <button id="btn-touch-fire" class="touch-action-btn fire-btn active" type="button" aria-label="Fire Lasers">
+          🔥
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Game Script -->
+  <script src="game.js"></script>
+</body>
+</html>
